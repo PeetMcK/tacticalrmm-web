@@ -87,6 +87,20 @@
             </q-item-section>
             <q-item-section>{{ summary.make_model }}</q-item-section>
           </q-item>
+          <!-- macOS version (for macOS only) -->
+          <q-item v-if="summary.plat === 'darwin'">
+            <q-item-section avatar>
+              <q-icon name="fab fa-apple" />
+            </q-item-section>
+            <q-item-section>{{ summary.operating_system }}</q-item-section>
+          </q-item>
+          <!-- serial -->
+          <q-item v-if="serial_number">
+            <q-item-section avatar>
+              <q-icon name="fa-solid fa-barcode" />
+            </q-item-section>
+            <q-item-section>{{ serial_number }}</q-item-section>
+          </q-item>
           <q-item>
             <q-item-section avatar>
               <q-icon name="fas fa-microchip" />
@@ -114,13 +128,6 @@
             </q-item-section>
             <q-item-section>{{ summary.graphics }}</q-item-section>
           </q-item>
-          <!-- serial -->
-          <q-item v-if="serial_number">
-            <q-item-section avatar>
-              <q-icon name="fa-solid fa-barcode" />
-            </q-item-section>
-            <q-item-section>{{ serial_number }}</q-item-section>
-          </q-item>
           <q-item>
             <q-item-section avatar>
               <q-icon name="fas fa-globe-americas" />
@@ -131,7 +138,11 @@
             <q-item-section avatar>
               <q-icon name="fas fa-network-wired" />
             </q-item-section>
-            <q-item-section>LAN IP: {{ summary.local_ips }}</q-item-section>
+            <q-item-section>
+              <div v-for="(line, index) in localIpLines" :key="index">
+                {{ line }}
+              </div>
+            </q-item-section>
           </q-item>
         </q-list>
       </div>
@@ -305,6 +316,22 @@ export default {
       return ret;
     });
 
+    const localIpLines = computed(() => {
+      if (!summary.value.local_ips) {
+        return [];
+      }
+      // Handle both array and string formats
+      if (Array.isArray(summary.value.local_ips)) {
+        return summary.value.local_ips;
+      }
+      // If it's a comma-separated string, split it
+      if (typeof summary.value.local_ips === 'string') {
+        // Split by comma and trim whitespace
+        return summary.value.local_ips.split(',').map(line => line.trim());
+      }
+      return [summary.value.local_ips];
+    });
+
     const customFields = computed(() => {
       if (!summary.value.custom_fields) {
         return [];
@@ -379,6 +406,7 @@ export default {
       loading,
       selectedAgent,
       disks,
+      localIpLines,
       dash_info_color,
       dash_positive_color,
       dash_warning_color,

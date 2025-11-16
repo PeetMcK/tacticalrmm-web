@@ -1,7 +1,7 @@
 <template>
   <div v-if="!selectedAgent" class="q-pa-sm">No agent selected</div>
-  <div v-else-if="agentPlatform.toLowerCase() !== 'windows'" class="q-pa-sm">
-    Only supported for Windows agents at this time
+  <div v-else-if="!['windows', 'darwin'].includes(agentPlatform.toLowerCase())" class="q-pa-sm">
+    Only supported for Windows and macOS agents at this time
   </div>
   <div v-else>
     <q-table
@@ -34,7 +34,12 @@
           push
           @click="refreshSoftware"
           icon="refresh"
-        />
+          :disable="agentPlatform.toLowerCase() === 'darwin'"
+        >
+          <q-tooltip v-if="agentPlatform.toLowerCase() === 'darwin'">
+            Software refresh not available for macOS
+          </q-tooltip>
+        </q-btn>
         <q-btn
           icon="add"
           label="Install Software"
@@ -43,7 +48,12 @@
           flat
           push
           @click="showInstallSoftwareModal"
-        />
+          :disable="agentPlatform.toLowerCase() === 'darwin'"
+        >
+          <q-tooltip v-if="agentPlatform.toLowerCase() === 'darwin'">
+            Software installation not available for macOS
+          </q-tooltip>
+        </q-btn>
 
         <q-space />
 
@@ -71,7 +81,12 @@
             dense
             size="sm"
             @click="openUninstallSoftware(props.row)"
-          />
+            :disable="agentPlatform.toLowerCase() === 'darwin'"
+          >
+            <q-tooltip v-if="agentPlatform.toLowerCase() === 'darwin'">
+              Software uninstall not available for macOS
+            </q-tooltip>
+          </q-btn>
         </td>
       </template>
     </q-table>
@@ -95,55 +110,6 @@ import UninstallSoftware from "@/components/software/UninstallSoftware.vue";
 import ExportTableBtn from "@/components/ui/ExportTableBtn.vue";
 import { notifySuccess } from "@/utils/notify";
 
-// static data
-const columns = [
-  {
-    name: "name",
-    align: "left",
-    label: "Name",
-    field: "name",
-    sortable: true,
-  },
-  {
-    name: "publisher",
-    align: "left",
-    label: "Publisher",
-    field: "publisher",
-    sortable: true,
-  },
-  {
-    name: "install_date",
-    align: "left",
-    label: "Installed On",
-    field: "install_date",
-    sortable: false,
-    format: (val) => {
-      return val === "01/01/1" || val === "01-1-01" ? "" : val;
-    },
-  },
-  {
-    name: "size",
-    align: "left",
-    label: "Size",
-    field: "size",
-    sortable: false,
-  },
-  {
-    name: "version",
-    align: "left",
-    label: "Version",
-    field: "version",
-    sortable: false,
-  },
-  {
-    name: "uninstall",
-    align: "left",
-    label: "",
-    field: "uninstall",
-    sortable: false,
-  },
-];
-
 export default {
   name: "SoftwareTab",
   components: {
@@ -158,6 +124,104 @@ export default {
     const selectedAgent = computed(() => store.state.selectedRow);
     const tabHeight = computed(() => store.state.tabHeight);
     const agentPlatform = computed(() => store.state.agentPlatform);
+
+    // platform-specific columns
+    const columns = computed(() => {
+      const isMacOS = agentPlatform.value?.toLowerCase() === 'darwin';
+
+      if (isMacOS) {
+        // macOS: Name, Path, Copyright Info, Version (all sortable, no Size)
+        return [
+          {
+            name: "name",
+            align: "left",
+            label: "Name",
+            field: "name",
+            sortable: true,
+          },
+          {
+            name: "publisher",
+            align: "left",
+            label: "Path",
+            field: "publisher",
+            sortable: true,
+          },
+          {
+            name: "install_date",
+            align: "left",
+            label: "Copyright Info",
+            field: "install_date",
+            sortable: true,
+            format: (val) => {
+              return val === "01/01/1" || val === "01-1-01" ? "" : val;
+            },
+          },
+          {
+            name: "version",
+            align: "left",
+            label: "Version",
+            field: "version",
+            sortable: true,
+          },
+          {
+            name: "uninstall",
+            align: "left",
+            label: "",
+            field: "uninstall",
+            sortable: false,
+          },
+        ];
+      } else {
+        // Windows/Linux: all columns sortable
+        return [
+          {
+            name: "name",
+            align: "left",
+            label: "Name",
+            field: "name",
+            sortable: true,
+          },
+          {
+            name: "publisher",
+            align: "left",
+            label: "Publisher",
+            field: "publisher",
+            sortable: true,
+          },
+          {
+            name: "install_date",
+            align: "left",
+            label: "Installed On",
+            field: "install_date",
+            sortable: true,
+            format: (val) => {
+              return val === "01/01/1" || val === "01-1-01" ? "" : val;
+            },
+          },
+          {
+            name: "size",
+            align: "left",
+            label: "Size",
+            field: "size",
+            sortable: true,
+          },
+          {
+            name: "version",
+            align: "left",
+            label: "Version",
+            field: "version",
+            sortable: true,
+          },
+          {
+            name: "uninstall",
+            align: "left",
+            label: "",
+            field: "uninstall",
+            sortable: false,
+          },
+        ];
+      }
+    });
 
     // software tab logic
     const software = ref([]);
