@@ -140,7 +140,8 @@
             </q-item-section>
             <q-item-section>
               <div v-for="(line, index) in localIpLines" :key="index">
-                {{ line }}
+                <span v-if="line">{{ line }}</span>
+                <br v-else />
               </div>
             </q-item-section>
           </q-item>
@@ -326,7 +327,7 @@ export default {
       }
       // If it's a comma-separated string, split it
       if (typeof summary.value.local_ips === 'string') {
-        // Split by comma and trim whitespace
+        // Split by comma and trim whitespace, but preserve empty strings for blank lines
         return summary.value.local_ips.split(',').map(line => line.trim());
       }
       return [summary.value.local_ips];
