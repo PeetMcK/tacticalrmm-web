@@ -8,8 +8,15 @@
       class="q-ma-md"
     />
   </div>
-  <div v-else-if="summary" class="q-pa-sm">
-    <q-bar dense style="background-color: transparent">
+  <div v-else-if="summary" class="scroll" :style="{ 'max-height': tabHeight }">
+    <div
+      class="summary-header-sticky q-pa-sm"
+      :class="{
+        'bg-light': !$q.dark.isActive,
+        'bg-dark': $q.dark.isActive,
+      }"
+    >
+      <q-bar dense style="background-color: transparent">
       <q-btn
         dense
         flat
@@ -76,7 +83,8 @@
       </q-btn-dropdown>
     </q-bar>
     <q-separator class="q-mt-sm" />
-    <div class="row">
+    </div>
+    <div class="row q-pa-sm">
       <div class="col-4">
         <!-- left -->
         <span class="text-subtitle2 text-bold">Hardware Details</span>
@@ -134,15 +142,15 @@
             </q-item-section>
             <q-item-section>Public IP: {{ summary.public_ip }}</q-item-section>
           </q-item>
-          <q-item>
+          <q-item v-for="(line, index) in filteredLocalIpLines" :key="index">
             <q-item-section avatar>
-              <q-icon name="fas fa-network-wired" />
+              <q-icon
+                v-if="line.startsWith('Interface:')"
+                :name="line.toLowerCase().includes('wi-fi') ? 'fas fa-wifi' : 'fas fa-network-wired'"
+              />
             </q-item-section>
             <q-item-section>
-              <div v-for="(line, index) in localIpLines" :key="index">
-                <span v-if="line">{{ line }}</span>
-                <br v-else />
-              </div>
+              <span :style="line.startsWith('Interface:') ? 'font-weight: bold;' : ''">{{ line }}</span>
             </q-item-section>
           </q-item>
         </q-list>
@@ -272,6 +280,7 @@ export default {
     const dash_positive_color = computed(() => store.state.dash_positive_color);
     const dash_negative_color = computed(() => store.state.dash_negative_color);
     const dash_warning_color = computed(() => store.state.dash_warning_color);
+    const tabHeight = computed(() => store.state.tabHeight);
 
     // summary tab logic
     const summary = ref(null);
@@ -331,6 +340,11 @@ export default {
         return summary.value.local_ips.split(',').map(line => line.trim());
       }
       return [summary.value.local_ips];
+    });
+
+    const filteredLocalIpLines = computed(() => {
+      // Filter out empty lines
+      return localIpLines.value.filter(line => line);
     });
 
     const customFields = computed(() => {
@@ -408,12 +422,14 @@ export default {
       selectedAgent,
       disks,
       localIpLines,
+      filteredLocalIpLines,
       dash_info_color,
       dash_positive_color,
       dash_warning_color,
       dash_negative_color,
       serial_number,
       cpu,
+      tabHeight,
       store,
 
       // methods
@@ -426,3 +442,10 @@ export default {
   },
 };
 </script>
+
+<style lang="sass" scoped>
+.summary-header-sticky
+  position: sticky
+  top: 0
+  z-index: 2
+</style>

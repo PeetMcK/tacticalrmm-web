@@ -89,6 +89,7 @@ const routes = [
       auth.next = from.fullPath;
     },
   },
+  // SSO callback route is registered dynamically by boot/sso.ts
   { path: "/:catchAll(.*)", component: () => import("@/views/NotFound.vue") },
 ];
 

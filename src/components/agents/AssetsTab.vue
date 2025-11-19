@@ -1,35 +1,49 @@
 <template>
   <div v-if="!selectedAgent" class="q-pa-sm">No agent selected</div>
-  <div v-else-if="agentPlatform.toLowerCase() !== 'windows'" class="q-pa-sm">
-    Only supported for Windows agents at this time
+  <div
+    v-else-if="
+      agentPlatform.toLowerCase() !== 'windows' &&
+      agentPlatform.toLowerCase() !== 'darwin'
+    "
+    class="q-pa-sm"
+  >
+    Only supported for Windows and macOS agents at this time
   </div>
-  <div v-else>
-    <q-tabs
-      v-model="tab"
-      dense
-      class="text-grey"
-      active-color="primary"
-      indicator-color="primary"
-      align="justify"
-      narrow-indicator
-      no-caps
+  <div v-else class="scroll" :style="{ 'max-height': tabHeight }">
+    <div
+      class="assets-tabs-sticky"
+      :class="{
+        'bg-light': !$q.dark.isActive,
+        'bg-dark': $q.dark.isActive,
+      }"
     >
-      <q-tab name="os" label="Operating System" />
-      <q-tab name="cpu" label="CPU" />
-      <q-tab name="mem" label="Memory" />
-      <q-tab name="usb" label="USB" />
-      <q-tab name="bios" label="Bios" />
-      <q-tab name="disk" label="Disks" />
-      <q-tab name="comp_sys" label="Computer System" />
-      <q-tab name="base_board" label="Motherboard" />
-      <q-tab name="comp_sys_prod" label="Computer System Product" />
-      <q-tab name="network_config" label="Network Config" />
-      <q-tab name="graphics" label="Graphics" />
-      <q-tab name="desktop_monitor" label="Monitors" />
-      <q-tab name="network_adapter" label="Network Adapters" />
-    </q-tabs>
+      <q-tabs
+        v-model="tab"
+        dense
+        class="text-grey"
+        active-color="primary"
+        indicator-color="primary"
+        align="justify"
+        narrow-indicator
+        no-caps
+      >
+        <q-tab name="os" label="Operating System" />
+        <q-tab name="cpu" label="CPU" />
+        <q-tab name="mem" label="Memory" />
+        <q-tab name="usb" label="USB" />
+        <q-tab name="bios" label="Bios" />
+        <q-tab name="disk" label="Disks" />
+        <q-tab name="comp_sys" label="Computer System" />
+        <q-tab name="base_board" label="Motherboard" />
+        <q-tab name="comp_sys_prod" label="Computer System Product" />
+        <q-tab name="network_config" label="Network Config" />
+        <q-tab name="graphics" label="Graphics" />
+        <q-tab name="desktop_monitor" label="Monitors" />
+        <q-tab name="network_adapter" label="Network Adapters" />
+      </q-tabs>
 
-    <q-separator />
+      <q-separator />
+    </div>
 
     <q-tab-panels v-model="tab">
       <q-tab-panel name="os">
@@ -92,6 +106,7 @@ export default {
     const store = useStore();
     const selectedAgent = computed(() => store.state.selectedRow);
     const agentPlatform = computed(() => store.state.agentPlatform);
+    const tabHeight = computed(() => store.state.tabHeight);
     const loading = ref(false);
 
     // assets tab logic
@@ -121,7 +136,15 @@ export default {
       tab,
       selectedAgent,
       agentPlatform,
+      tabHeight,
     };
   },
 };
 </script>
+
+<style lang="sass" scoped>
+.assets-tabs-sticky
+  position: sticky
+  top: 0
+  z-index: 2
+</style>

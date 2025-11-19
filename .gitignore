@@ -34,3 +34,7 @@ yarn-error.log*
 
 .env
 /public/env-config.js
+
+# SSO EE Code - DO NOT COMMIT (Sponsored feature only)
+/src/boot/sso.ts
+/private/
